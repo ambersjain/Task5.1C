@@ -30,6 +30,7 @@ db.once('open', function () {
 
 // Model
 const User = require("./models/user");
+const { EEXIST } = require('constants');
 
 // Need to use this to be able to use views folder
 app.use(express.static('views'));
@@ -54,13 +55,18 @@ app.get('/regFailed', (req, res) => {
   res.sendFile(`${base}/regFailed.html`);
 });
 
+// Welcome route
+app.get('/welcome', (req, res) => {
+  res.sendFile(`${base}/welcome.html`);
+});
+
 
 // 404 route
 app.get('/*', (req, res) => {
   res.sendFile(`${base}/404.html`);
 });
 
-// Submit route
+// Signup
 app.post('/', (req, res) => {
 
   //hashing password before storing in db
@@ -131,6 +137,34 @@ app.post('/', (req, res) => {
   }
 });
 
+//Login
+app.post('/signin', (req, res) => {
+  User.User.findOne({email: req.body.email}, (err, user)=> {
+    if(err) {
+      console.log(err);
+      return res.status(500).send();
+    }
+    if (!user) {
+      console.log("Email do not match");
+      res.redirect(`/*`);
+      return res.status(404).send();
+    }
+    if (user) {
+      if (bcrypt.compareSync(req.body.passwordlogin, user.password)) {
+        console.log("Welcome!, you are logged in")
+        res.redirect(`/welcome`);
+        return res.status(200).send();
+      } else {
+        console.log("Wrong Password");
+        // send them page not found error
+        res.redirect(`/*`);
+        return res.status(404).send();
+      }
+    }
+    return res.status(200).send();
+  })
+})
+
 app.listen(port, () => {
   console.log(`listening on port ${port}`);
-})
+});

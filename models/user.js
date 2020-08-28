@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
 const validator = require('validator');
-
-
 // User schema
 
 //Defining the schema
